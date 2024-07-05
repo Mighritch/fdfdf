@@ -3,6 +3,10 @@
 #include <QMessageBox>
 #include <QIntValidator>
 #include <QRegExpValidator>
+#include <QDebug>
+#include <QSqlError>
+#include <QSortFilterProxyModel>
+
 secondwindow::secondwindow(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::secondwindow)
@@ -10,7 +14,19 @@ secondwindow::secondwindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("Second Window");
     resize(900, 600); // Taille de la nouvelle fenêtre
+
+    QSqlDatabase db = QSqlDatabase::database(); // Accéder à la base de données par défaut de l'application
+
+       if (!db.isOpen()) {
+           qDebug() << "Erreur de connexion à la base de données.";
+           QMessageBox::critical(this, "Erreur de connexion", "Impossible de se connecter à la base de données.");
+           // Gérer la fermeture de la fenêtre ou d'autres actions nécessaires
+           return;
+       }
+
     ui->tableView->setModel(ens.affiche());
+
+
 
 }
 
@@ -94,4 +110,76 @@ void secondwindow::on_pushButton_retour_clicked()
     // Émettre le signal indiquant que le bouton retour a été cliqué
     emit retourButtonClicked();
       this->close();
+}
+
+
+
+void secondwindow::on_pushButton_5_clicked()
+{
+    QString nom = ui->lineEdit_7->text().trimmed(); // Trim pour enlever les espaces blancs autour
+    QSqlQueryModel *model = ens.recherche(nom);
+
+    if (!model) {
+        qDebug() << "Erreur lors de la recherche.";
+        QMessageBox::critical(this, "Erreur de recherche", "Une erreur s'est produite lors de la recherche.");
+        return;
+    }
+
+    if (model->lastError().isValid()) {
+        qDebug() << "Erreur SQL:" << model->lastError().text();
+        QMessageBox::critical(this, "Erreur SQL", "Une erreur SQL s'est produite lors de la recherche.");
+        delete model;  // Libérer la mémoire du modèle
+        return;
+    }
+
+    if (model->rowCount() == 0) {
+        QMessageBox::information(this, "Aucun résultat", "Aucun enseignant trouvé avec le nom spécifié.");
+        ui->tableView->setModel(nullptr);  // Effacer le modèle actuel du tableView s'il y en a un
+    } else {
+       ui->tableView->setModel(model);
+    }
+}
+
+
+
+
+void secondwindow::on_pushButton_7_clicked()
+{
+    enseignant ens;
+      QSqlQueryModel *modelTri = ens.triParCIN();
+      if (modelTri) {
+          // Utiliser un proxy model pour trier
+          QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel(this);
+          proxyModel->setSourceModel(modelTri);
+          ui->tableView->setModel(proxyModel);
+      } else {
+          QMessageBox::critical(this, "Erreur de tri", "Erreur lors du tri des données par CIN.");
+      }
+}
+
+
+void secondwindow::on_pushButton_6_clicked()
+{
+    QString matiere = ui->lineEdit_8->text().trimmed(); // Trim pour enlever les espaces blancs autour
+    QSqlQueryModel *model = ens.cherche(matiere);
+
+    if (!model) {
+        qDebug() << "Erreur lors de la recherche.";
+        QMessageBox::critical(this, "Erreur de recherche", "Une erreur s'est produite lors de la recherche.");
+        return;
+    }
+
+    if (model->lastError().isValid()) {
+        qDebug() << "Erreur SQL:" << model->lastError().text();
+        QMessageBox::critical(this, "Erreur SQL", "Une erreur SQL s'est produite lors de la recherche.");
+        delete model;  // Libérer la mémoire du modèle
+        return;
+    }
+
+    if (model->rowCount() == 0) {
+        QMessageBox::information(this, "Aucun résultat", "Aucun enseignant trouvé avec cette matière spécifiée.");
+        ui->tableView->setModel(nullptr);  // Effacer le modèle actuel du tableView s'il y en a un
+    } else {
+        ui->tableView->setModel(model);
+    }
 }
