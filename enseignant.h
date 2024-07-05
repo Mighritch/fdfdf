@@ -30,6 +30,8 @@ public:
            QSqlQueryModel *cherche(const QString &matiere);
            bool supprime(int cin);
            bool modifie();
+           QSqlQueryModel* triParCIN();
+
 
 private:
 QString nom,prenom,matiere;
