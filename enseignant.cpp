@@ -96,3 +96,65 @@ bool enseignant::supprime(int cin){
 
     return query.exec();
 }
+
+QSqlQueryModel* enseignant::recherche(const QString &nom)
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    QSqlQuery query;
+    query.prepare("SELECT * FROM ENSEIGNANT WHERE nom LIKE :nom");
+    query.bindValue(":nom", "%" + nom + "%");  // Utilisation du LIKE pour rechercher des noms partiellement correspondants
+
+    if (!query.exec()) {
+        qDebug() << "Erreur lors de l'exécution de la requête:" << query.lastError();
+        delete model; // Nettoyer le modèle en cas d'erreur
+        return nullptr;
+    }
+
+    model->setQuery(query);
+
+    // Définir les en-têtes de colonnes
+    model->setHeaderData(0, Qt::Horizontal, QObject::tr("Nom"));
+    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Prénom"));
+    model->setHeaderData(2, Qt::Horizontal, QObject::tr("CIN"));
+    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Matière"));
+
+    return model;
+}
+
+QSqlQueryModel* enseignant::cherche(const QString &matiere)
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    QSqlQuery query;
+    query.prepare("SELECT * FROM ENSEIGNANT WHERE matiere LIKE :matiere");
+    query.bindValue(":matiere", "%" + matiere + "%");  // Utilisation du LIKE pour rechercher des noms partiellement correspondants
+
+    if (!query.exec()) {
+        qDebug() << "Erreur lors de l'exécution de la requête:" << query.lastError();
+        delete model; // Nettoyer le modèle en cas d'erreur
+        return nullptr;
+    }
+
+    model->setQuery(query);
+
+    // Définir les en-têtes de colonnes
+    model->setHeaderData(0, Qt::Horizontal, QObject::tr("Nom"));
+    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Prénom"));
+    model->setHeaderData(2, Qt::Horizontal, QObject::tr("CIN"));
+    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Matière"));
+
+    return model;
+}
+
+QSqlQueryModel* enseignant::triParCIN()
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery("SELECT * FROM ENSEIGNANT ORDER BY cin ASC"); // Tri par CIN croissant
+    // Définir les en-têtes de colonnes si nécessaire
+    model->setHeaderData(0, Qt::Horizontal, QObject::tr("Nom"));
+    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Prénom"));
+    model->setHeaderData(2, Qt::Horizontal, QObject::tr("CIN"));
+    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Matière"));
+
+    return model;
+}
+
